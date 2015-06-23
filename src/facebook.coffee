@@ -11,6 +11,9 @@ class FbResponse extends Response
   sendSticker: (ids...) ->
     @robot.adapter.sendSticker @envelope, ids...
 
+  read: () ->
+    @robot.adapter.read @envelope
+
 class Facebook extends Adapter
 
   send: (envelope, strings...) ->
@@ -25,6 +28,9 @@ class Facebook extends Adapter
   sendSticker: (envelope, ids...) ->
     for id in ids
       @bot.sendSticker id, envelope.room
+
+  read: (envelope) ->
+    @bot.markAsRead envelope.room
 
   reply: (envelope, strings...) ->
     name = envelope.user.name.split(' ')[0]
