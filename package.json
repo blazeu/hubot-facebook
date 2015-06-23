@@ -4,12 +4,7 @@
   "description": "Facebook chat adapter for hubot",
   "main": "./src/facebook",
   "author": "blazeu <neversleepman@tfwno.gf>",
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "http://opensource.org/licenses/mit-license.php"
-    }
-  ],
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git://github.com/blazeu/hubot-facebook.git"
