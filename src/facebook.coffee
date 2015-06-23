@@ -1,4 +1,4 @@
-{Robot, Adapter, TextMessage, EnterMessage, LeaveMessage, TopicMessage, Response} = require 'hubot'
+{Robot, Adapter, TextMessage, EnterMessage, LeaveMessage, TopicMessage, Response, Brain} = require 'hubot'
 
 chat = require 'facebook-chat-api'
 FB = require 'fb'
@@ -31,7 +31,7 @@ class Facebook extends Adapter
     @send envelope, strings.map((str) -> "#{name}: #{str}")...
 
   topic: (envelope, strings...) ->
-    title = stings.join(' ')
+    title = strings.join(' ')
     thread = envelope.room
     @bot.setTitle title, thread
 
