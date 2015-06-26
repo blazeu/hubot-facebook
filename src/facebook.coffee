@@ -21,9 +21,7 @@ class Facebook extends Adapter
       @bot.sendMessage str, envelope.room
 
   sendPrivate: (envelope, strings...) ->
-    @robot.logger.debug envelope
-    for str in strings
-      @bot.sendMessage str, envelope.user.id
+    @send room: envelope.user.id, strings...
 
   sendSticker: (envelope, ids...) ->
     for id in ids
@@ -69,6 +67,8 @@ class Facebook extends Adapter
         self.emit "connected"
 
       bot.listen (err, event, stop) ->
+        return self.robot.logger.error err if err
+
         sender = event.sender_id or event.author
         user = self.robot.brain.userForId sender, name: event.sender_name, room: event.thread_id
 
@@ -85,7 +85,7 @@ class Facebook extends Adapter
                 self.receive new EnterMessage user
           when "sticker"
             # TODO: Add a custom StickerMessage
-            self.receive new TextMessage user, event.sticker_id
+            self.receive new TextMessage user, event.sticker_id.toString()
 
         self.robot.logger.debug "#{user.name} -> #{user.room}: #{event.body || event.log_message_type}"
 
