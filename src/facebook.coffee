@@ -44,11 +44,13 @@ class Facebook extends Adapter
 
     config =
       name: if @robot.name is 'hubot' then null else @robot.name
+      email: process.env.HUBOT_FB_EMAIL || process.env.FB_LOGIN_EMAIL
+      password: process.env.HUBOT_FB_PASSWORD || process.env.FB_LOGIN_PASSWORD
 
     # Override the response to provide custom method
     @robot.Response = FbResponse
 
-    chat (err, bot) ->
+    chat email: config.email, password: config.password, (err, bot) ->
       return self.robot.logger.error err if err
 
       # Mute fb-chat-api's logging and allow listen for events
