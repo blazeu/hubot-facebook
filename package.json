@@ -1,6 +1,6 @@
 {
   "name": "hubot-facebook",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Facebook chat adapter for hubot",
   "main": "./src/facebook",
   "author": "blazeu <neversleepman@tfwno.gf>",
