@@ -11,14 +11,17 @@ if not Message
   Message = TextMessage.__super__.constructor
 
 class StickerMessage extends Message
-  constructor: (@user, @sticker_id="", @raw_data = {}) ->
-    super @user
+  constructor: (@user, @stickerID="", @spriteURI="") ->
+    super @user, @sticker_url
 
   match: (regex) ->
-    @sticker_id.match regex
+    @stickerID.match regex
+
+  text: () ->
+    @spriteURI
 
   toString: () ->
-    @sticker_id
+    "Sticker(#{@stickerID})"
 
 module.exports = {
   StickerMessage

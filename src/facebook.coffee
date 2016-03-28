@@ -7,7 +7,6 @@ catch
 {StickerListener} = require './listener'
 
 chat = require 'facebook-chat-api'
-FB = require 'fb'
 
 # Custom Response class that adds a sendPrivate method (based on hubot-irc) and sendSticker method
 class FbResponse extends Response
@@ -24,14 +23,20 @@ class Facebook extends Adapter
 
   send: (envelope, strings...) ->
     for str in strings
-      @bot.sendMessage str, envelope.room
+      msg = {body: str}
+      @bot.sendMessage msg, envelope.room
 
   sendPrivate: (envelope, strings...) ->
     @send room: envelope.user.id, strings...
 
   sendSticker: (envelope, ids...) ->
     for id in ids
-      @bot.sendSticker id, envelope.room
+      msg = {sticker: id}
+      @bot.sendMessage msg, envelope.room
+
+  sendImage: (envelope, string, file_streams...) ->
+    msg = {body: string, attachment: file_streams}
+    @bot.sendMessage msg, envelope.room
 
   read: (envelope) ->
     @bot.markAsRead envelope.room
@@ -65,36 +70,57 @@ class Facebook extends Adapter
       self.bot = bot
 
       if not config.name?
-        FB.setAccessToken bot.getAccessToken()
-        FB.api 'me', (res) ->
+        config.name = 'hubot'
+        bot.getUserInfo bot.getCurrentUserID(), (err, res) ->
+          return self.robot.logger.error err if err
           # set robot name to first name of the faceobok account
-          config.name = res.first_name
+          for prop of res
+            config.name = res[prop].firstName if (res.hasOwnProperty(prop) && res[prop].firstName)
           self.robot.name = config.name
           self.emit "connected"
       else
         self.emit "connected"
 
       bot.listen (err, event, stop) ->
-        return self.robot.logger.error err if err
+        return self.robot.logger.error err if err or !event
 
-        sender = event.sender_id or event.author
-        user = self.robot.brain.userForId sender, name: event.sender_name, room: event.thread_id
+        # Skip useless data
+        return if !!~["typ", "read_receipt", "read", "presence"].indexOf(event.type)
+
+        sender = event.senderID or event.author or event.userID
+        user = self.robot.brain.userForId sender, name: event.senderName, room: event.threadID
 
         switch event.type
           when "message"
-            self.receive new TextMessage user, event.body
+            if event.body
+              self.robot.logger.debug "#{user.name} -> #{user.room}: #{event.body}"
+              self.receive new TextMessage user, event.body
+
+              # If this is a PM, pretend it was addressed to us
+              event.body = "#{@robot.name} #{event.body}" if sender == event.threadID
+
+            for attachment in event.attachments
+              switch attachment.type
+                when "sticker"
+                  self.robot.logger.debug "#{user.name} -> #{user.room}: #{attachment.stickerID}"
+                  self.receive new StickerMessage user, attachment.stickerID,
+                    (attachment.spriteURI2x || attachment.spriteURI)
+                # TODO "file", "photo", "animated_image", "share"
           when "event"
-            switch event.log_message_type
+            switch event.logMessageType
               when "log:thread-name"
-                self.receive new TopicMessage user, event.log_message_data.name
+                self.receive new TopicMessage user, event.logMessageData.name
               when "log:unsubscribe"
                 self.receive new LeaveMessage user
               when "log:subscribe"
                 self.receive new EnterMessage user
-          when "sticker"
-            self.receive new StickerMessage user, event.sticker_id.toString(), event
+            self.robot.logger.debug "#{user.name} -> #{user.room}: #{event.logMessageType}"
 
-        self.robot.logger.debug "#{user.name} -> #{user.room}: #{event.body || event.log_message_type}"
+module.exports = exports = {
+  Facebook
+  StickerMessage
+  StickerListener
+}
 
 exports.use = (robot) ->
   new Facebook robot

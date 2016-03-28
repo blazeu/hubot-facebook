@@ -1,18 +1,17 @@
 {
   "name": "hubot-facebook",
-  "version": "0.2.2",
+  "version": "0.5.0",
   "description": "Facebook chat adapter for hubot",
   "main": "./src/facebook",
-  "author": "blazeu <neversleepman@tfwno.gf>",
+  "author": "Clicia Scarlet <yuyuvn@icloud.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git://github.com/blazeu/hubot-facebook.git"
+    "url": "git://github.com/yuyuvn/hubot-facebook.git"
   },
   "dependencies": {
-    "facebook-chat-api": "^0.2.3",
     "parent-require": "^1.0.0",
-    "fb": "^0.7.0"
+    "facebook-chat-api": "1.0.8"
   },
   "scripts": {}
 }

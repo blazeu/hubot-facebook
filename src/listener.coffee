@@ -14,7 +14,7 @@ catch
 #
 
 class StickerListener extends Listener
-  constructor: (@robot, @matcher, @callback) ->
+  constructor: (@robot, @regex, @callback) ->
     @matcher = (message) =>
       if message instanceof StickerMessage
         message.match @regex
