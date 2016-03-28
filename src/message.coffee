@@ -1,8 +1,4 @@
-try
-  {Message, TextMessage} = require 'hubot'
-catch
-  prequire = require('parent-require')
-  {Message, TextMessage} = prequire 'hubot'
+{Message, TextMessage} = prequire 'hubot'
 
 # Hubot only started exporting Message in 2.11.0. Previous version do not export
 # this class. In order to remain compatible with older versions, we can pull the

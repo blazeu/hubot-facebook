@@ -1,8 +1,4 @@
-try
-  {Listener} = require 'hubot'
-catch
-  prequire = require('parent-require')
-  {Listener} = prequire 'hubot'
+{Listener} = require 'hubot'
 {StickerMessage} = require './message'
 
 # Custome listener for custom messager
