@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "facebook-chat-api": "^0.2.3",
+    "parent-require": "^1.0.0",
     "fb": "^0.7.0"
   },
   "scripts": {}

@@ -1,4 +1,8 @@
-{Robot, Adapter, TextMessage, EnterMessage, LeaveMessage, TopicMessage, Response, Brain} = require 'hubot'
+try
+  {Robot, Adapter, TextMessage, EnterMessage, LeaveMessage, TopicMessage, Response, Brain} = require 'hubot'
+catch
+  prequire = require('parent-require')
+  {Robot, Adapter, TextMessage, EnterMessage, LeaveMessage, TopicMessage, Response, Brain} = prequire 'hubot'
 {StickerMessage} = require './message'
 {StickerListener} = require './listener'
 
