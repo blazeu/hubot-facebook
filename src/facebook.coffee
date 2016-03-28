@@ -1,4 +1,6 @@
 {Robot, Adapter, TextMessage, EnterMessage, LeaveMessage, TopicMessage, Response, Brain} = require 'hubot'
+{StickerMessage} = require './message'
+{StickerListener} = require './listener'
 
 chat = require 'facebook-chat-api'
 FB = require 'fb'
@@ -86,8 +88,7 @@ class Facebook extends Adapter
               when "log:subscribe"
                 self.receive new EnterMessage user
           when "sticker"
-            # TODO: Add a custom StickerMessage
-            self.receive new TextMessage user, event.sticker_id.toString()
+            self.receive new StickerMessage user, event.sticker_id.toString(), event
 
         self.robot.logger.debug "#{user.name} -> #{user.room}: #{event.body || event.log_message_type}"
 
