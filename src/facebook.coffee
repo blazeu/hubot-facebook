@@ -12,6 +12,9 @@ class FbResponse extends Response
   sendSticker: (ids...) ->
     @robot.adapter.sendSticker @envelope, ids...
 
+  sendImage: (string, file_streams...) ->
+    @robot.adapter.sendImage @envelope, string, file_streams...
+
   read: () ->
     @robot.adapter.read @envelope
 
@@ -81,7 +84,7 @@ class Facebook extends Adapter
         return self.robot.logger.error err if err or !event
 
         # Skip useless data
-        return if !!~["typ", "read_receipt", "read", "presence"].indexOf(event.type)
+        return if event.type in ["typ", "read_receipt", "read", "presence"]
 
         sender = event.senderID or event.author or event.userID
         user = self.robot.brain.userForId sender, name: event.senderName, room: event.threadID
@@ -90,10 +93,11 @@ class Facebook extends Adapter
           when "message"
             if event.body
               self.robot.logger.debug "#{user.name} -> #{user.room}: #{event.body}"
-              self.receive new TextMessage user, event.body
 
               # If this is a PM, pretend it was addressed to us
-              event.body = "#{@robot.name} #{event.body}" if sender == event.threadID
+              event.body = "#{self.robot.name} #{event.body}" if "#{sender}" == "#{event.threadID}"
+
+              self.receive new TextMessage user, event.body
 
             for attachment in event.attachments
               switch attachment.type
