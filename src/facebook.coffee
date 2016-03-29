@@ -97,14 +97,14 @@ class Facebook extends Adapter
               # If this is a PM, pretend it was addressed to us
               event.body = "#{self.robot.name} #{event.body}" if "#{sender}" == "#{event.threadID}"
 
-              self.receive new TextMessage user, event.body
+              self.receive new TextMessage user, event.body, event.messageID
 
             for attachment in event.attachments
               switch attachment.type
                 when "sticker"
                   self.robot.logger.debug "#{user.name} -> #{user.room}: #{attachment.stickerID}"
-                  self.receive new StickerMessage user, attachment.stickerID,
-                    (attachment.spriteURI2x || attachment.spriteURI)
+                  self.receive new StickerMessage user, (attachment.spriteURI2x || attachment.spriteURI),
+                    event.messageID, attachment.stickerID
                 # TODO "file", "photo", "animated_image", "share"
           when "event"
             switch event.logMessageType

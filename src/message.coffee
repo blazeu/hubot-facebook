@@ -7,14 +7,18 @@ if not Message
   Message = TextMessage.__super__.constructor
 
 class StickerMessage extends Message
-  constructor: (@user, @stickerID="", @spriteURI="") ->
-    super @user, @sticker_url
+  # Represents Sticker messages.
+  #
+  #
+  # user       - The User object
+  # text       - The sticker url
+  # id         - The id of message
+  # stickerID  - The id of sticker
+  constructor: (@user, @text="", @id="", @stickerID="") ->
+    super @user
 
   match: (regex) ->
     @stickerID.match regex
-
-  text: () ->
-    @spriteURI
 
   toString: () ->
     "Sticker(#{@stickerID})"
