@@ -12,16 +12,16 @@ class FbResponse extends Response
   sendSticker: (ids...) ->
     @robot.adapter.sendSticker @envelope, ids...
 
-  sendImage: (string, file_streams...) ->
-    @robot.adapter.sendImage @envelope, string, file_streams...
+  sendFile: (string, file_streams...) ->
+    @robot.adapter.sendFile @envelope, string, file_streams...
 
   read: () ->
     @robot.adapter.read @envelope
 
 class Facebook extends Adapter
-
   send: (envelope, strings...) ->
     for str in strings
+      continue unless str
       msg = {body: str}
       @bot.sendMessage msg, envelope.room
 
@@ -33,7 +33,7 @@ class Facebook extends Adapter
       msg = {sticker: id}
       @bot.sendMessage msg, envelope.room
 
-  sendImage: (envelope, string, file_streams...) ->
+  sendFile: (envelope, string, file_streams...) ->
     msg = {body: string, attachment: file_streams}
     @bot.sendMessage msg, envelope.room
 
@@ -41,16 +41,97 @@ class Facebook extends Adapter
     @bot.markAsRead envelope.room
 
   reply: (envelope, strings...) ->
-    name = envelope.user.name.split(' ')[0]
-    @send envelope, strings.map((str) -> "#{name}: #{str}")...
+    name = envelope.user?.name?.split(' ')[0] || envelope.message?.user?.name?.split(' ')[0]
+    @send envelope, strings.map((str) -> "@#{name} #{str}")...
 
   topic: (envelope, strings...) ->
     title = strings.join(' ')
     thread = envelope.room
     @bot.setTitle title, thread
 
+  customeMessage: (data) =>
+    if data.user?.id || data.user?.name
+      if data.user?.id
+        room = data.user.id
+      else
+        user = @robot.brain.userForName data.user.name
+        room = user.id if user?
+    else if data.room?
+      room = data.room
+
+    unless room?
+      room = if data.room
+        data.room
+      else if data.message.envelope
+        data.message.envelope.room
+      else data.message.room
+
+    msg = {}
+    msg.sticker = data.sticker if data.sticker?
+    msg.body = data.text if data.text?
+    msg.attachment = data.attachment || data.attachments
+
+    @bot.sendMessage msg, room
+
+  privateMessage: (data) =>
+    user = data.message.user
+    @customeMessage user: user
+
+  message: (event) ->
+    # Skip useless data
+    return if event.type in ["typ", "read_receipt", "read", "presence"]
+
+    sender = event.senderID or event.author or event.userID
+    options = room: event.threadID
+    name = event.senderName
+    if event.participantNames? and event.participantIDs?
+      name = event.participantNames[event.participantIDs.indexOf(sender)]
+    options.name = name if name
+    user = @robot.brain.userForId sender, options
+
+    switch event.type
+      when "message"
+        if event.body?
+          @robot.logger.debug "#{user.name} -> #{user.room}: #{event.body}"
+
+          # If this is a PM, pretend it was addressed to us
+          event.body = "#{@robot.name} #{event.body}" if "#{sender}" == "#{event.threadID}"
+
+          @receive new TextMessage user, event.body, event.messageID
+
+        for attachment in event.attachments
+          switch attachment.type
+            when "sticker"
+              @robot.logger.debug "#{user.name} -> #{user.room}: #{attachment.stickerID}"
+              @receive new StickerMessage user,
+                (attachment.url || attachment.spriteURI2x || attachment.spriteURI),
+                event.messageID, attachment
+            # TODO "file", "photo", "animated_image", "share"
+      when "event"
+        switch event.logMessageType
+          when "log:thread-name"
+            @receive new TopicMessage user, event.logMessageData.name
+          when "log:unsubscribe"
+            @receive new LeaveMessage user
+          when "log:subscribe"
+            @receive new EnterMessage user
+        @robot.logger.debug "#{user.name} -> #{user.room}: #{event.logMessageType}"
+
+  setName: (cb) ->
+    user_id = @bot.getCurrentUserID()
+    @bot.getUserInfo user_id, (err, res) =>
+      return @robot.logger.error err if err
+      # set robot name to first name of the faceobok account
+      @robot.name = res[user_id].firstName
+      cb()
+
   run: ->
-    self = @
+    # another way to use special send is use @robot.emit
+    # so hubot don't need to check if respond has special method or not
+    @robot.on "facebook.sendSticker", @.customeMessage
+    @robot.on "facebook.sendImage", @.customeMessage
+    @robot.on "facebook.sendFile", @.customeMessage
+    @robot.on "facebook.sendPrivate", @.privateMessage
 
     config =
       name: if @robot.name is 'hubot' then null else @robot.name
@@ -59,68 +140,63 @@ class Facebook extends Adapter
 
     # Override the response to provide custom method
     @robot.Response = FbResponse
+    @robot.respondSticker = (regex, callback) =>
+      @robot.listeners.push new StickerListener @robot, regex, callback
 
-    chat email: config.email, password: config.password, (err, bot) ->
-      return self.robot.logger.error err if err
+    chat email: config.email, password: config.password, (err, bot) =>
+      return @robot.logger.error err if err
+
+      @bot = bot
 
       # Mute fb-chat-api's logging and allow listen for events
-      bot.setOptions({logLevel: "silent", listenEvents: true})
+      @bot.setOptions({logLevel: "silent", listenEvents: true})
 
-      self.bot = bot
-
-      if not config.name?
-        config.name = 'hubot'
-        bot.getUserInfo bot.getCurrentUserID(), (err, res) ->
-          return self.robot.logger.error err if err
-          # set robot name to first name of the faceobok account
-          for prop of res
-            config.name = res[prop].firstName if (res.hasOwnProperty(prop) && res[prop].firstName)
-          self.robot.name = config.name
-          self.emit "connected"
+      if config.name
+        @emit "connected"
       else
-        self.emit "connected"
+        @setName => @emit "connected"
 
-      bot.listen (err, event, stop) ->
-        return self.robot.logger.error err if err or !event
 
-        # Skip useless data
+      bot.listen (err, event, stop) =>
+        return @robot.logger.error err if err or not event?
         return if event.type in ["typ", "read_receipt", "read", "presence"]
 
         sender = event.senderID or event.author or event.userID
-        user = self.robot.brain.userForId sender, name: event.senderName, room: event.threadID
+        options = room: event.threadID
+        name = event.senderName
+        if event.participantNames? and event.participantIDs?
+          name = event.participantNames[event.participantIDs.indexOf(sender)]
+        options.name = name if name
+        user = @robot.brain.userForId sender, options
 
         switch event.type
           when "message"
-            if event.body
-              self.robot.logger.debug "#{user.name} -> #{user.room}: #{event.body}"
+            if event.body?
+              @robot.logger.debug "#{user.name} -> #{user.room}: #{event.body}"
 
               # If this is a PM, pretend it was addressed to us
-              event.body = "#{self.robot.name} #{event.body}" if "#{sender}" == "#{event.threadID}"
+              event.body = "#{@robot.name} #{event.body}" if "#{sender}" == "#{event.threadID}"
 
-              self.receive new TextMessage user, event.body, event.messageID
+              @receive new TextMessage user, event.body, event.messageID
 
             for attachment in event.attachments
               switch attachment.type
                 when "sticker"
-                  self.robot.logger.debug "#{user.name} -> #{user.room}: #{attachment.stickerID}"
-                  self.receive new StickerMessage user, (attachment.spriteURI2x || attachment.spriteURI),
-                    event.messageID, attachment.stickerID
+                  @robot.logger.debug "#{user.name} -> #{user.room}: #{attachment.stickerID}"
+                  @receive new StickerMessage user,
+                    (attachment.url || attachment.spriteURI2x || attachment.spriteURI),
+                    event.messageID, attachment
                 # TODO "file", "photo", "animated_image", "share"
+            @bot.markAsRead user.room
           when "event"
             switch event.logMessageType
               when "log:thread-name"
-                self.receive new TopicMessage user, event.logMessageData.name
+                @receive new TopicMessage user, event.logMessageData.name
               when "log:unsubscribe"
-                self.receive new LeaveMessage user
+                @receive new LeaveMessage user
               when "log:subscribe"
-                self.receive new EnterMessage user
-            self.robot.logger.debug "#{user.name} -> #{user.room}: #{event.logMessageType}"
+                @receive new EnterMessage user
+            @robot.logger.debug "#{user.name} -> #{user.room}: #{event.logMessageType}"
 
-module.exports = exports = {
-  Facebook
-  StickerMessage
-  StickerListener
-}
 
-exports.use = (robot) ->
-  new Facebook robot
+module.exports = Facebook

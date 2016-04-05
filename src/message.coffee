@@ -14,14 +14,14 @@ class StickerMessage extends Message
   # text       - The sticker url
   # id         - The id of message
   # stickerID  - The id of sticker
-  constructor: (@user, @text="", @id="", @stickerID="") ->
+  constructor: (@user, @text="", @id="", @fields={}) ->
     super @user
 
   match: (regex) ->
-    @stickerID.match regex
+    @fields.stickerID.match regex
 
   toString: () ->
-    "Sticker(#{@stickerID})"
+    "Sticker(#{@fields.stickerID})"
 
 module.exports = {
   StickerMessage
