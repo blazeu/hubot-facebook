@@ -41,8 +41,11 @@ class Facebook extends Adapter
     @bot.markAsRead envelope.room
 
   reply: (envelope, strings...) ->
-    name = envelope.user?.name?.split(' ')[0] || envelope.message?.user?.name?.split(' ')[0]
-    @send envelope, strings.map((str) -> "@#{name} #{str}")...
+    if envelope.room == envelope.user?.id || envelope.room == envelope.message?.user?.id
+      @send envelope, strings...
+    else
+      name = envelope.user?.name?.split(' ')[0] || envelope.message?.user?.name?.split(' ')[0]
+      @send envelope, strings.map((str) -> "@#{name} #{str}")...
 
   topic: (envelope, strings...) ->
     title = strings.join(' ')
@@ -187,7 +190,7 @@ class Facebook extends Adapter
                     (attachment.url || attachment.spriteURI2x || attachment.spriteURI),
                     event.messageID, attachment
                 # TODO "file", "photo", "animated_image", "share"
-            @bot.markAsRead user.room
+            @bot.markAsRead user.room if process.env.HUBOT_FB_MAR
           when "event"
             switch event.logMessageType
               when "log:thread-name"

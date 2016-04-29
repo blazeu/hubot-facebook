@@ -49,6 +49,11 @@ describe 'Other action', ->
     @stubs._msg.length.should.equal 1
     @stubs._msg[0].msg.body.should.eql '@user test'
 
+  it 'Should not add prefix if reply in private room', ->
+    @facebook.reply {room: 'user', message: user: id: "user"}, "test"
+    @stubs._msg.length.should.equal 1
+    @stubs._msg[0].msg.body.should.eql 'test'
+
   it 'Should reply a message only with first name', ->
     @facebook.reply {room: 'general', message: user: name: "first last"}, "test"
     @stubs._msg.length.should.equal 1

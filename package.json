@@ -1,6 +1,6 @@
 {
   "name": "hubot-facebook",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "Facebook chat adapter for hubot",
   "main": "./index",
   "scripts": {
@@ -13,10 +13,7 @@
     "url": "git://github.com/yuyuvn/hubot-facebook.git"
   },
   "dependencies": {
-    "facebook-chat-api": "1.0.8",
-    "coffee-script": "~1.7.1",
-    "should": "~2.0.2",
-    "mocha": "~1.13.0",
+    "facebook-chat-api": "~1.1.0",
     "hubot": "~2.13"
   },
   "engines": {
@@ -28,5 +25,10 @@
       "name": "blazeu",
       "email": "neversleepman@tfwno.gf"
     }
-  ]
+  ],
+  "devDependencies": {
+    "coffee-script": "^1.7.1",
+    "should": "~2.0.2",
+    "mocha": "~1.13.0"
+  }
 }
