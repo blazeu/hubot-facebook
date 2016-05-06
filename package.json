@@ -13,8 +13,7 @@
     "url": "git://github.com/blazeu/hubot-facebook.git"
   },
   "dependencies": {
-    "facebook-chat-api": "~1.1.0",
-    "hubot": "~2.13"
+    "facebook-chat-api": "~1.1.0"
   },
   "engines": {
     "node": ">=5.8.0",
@@ -22,6 +21,7 @@
   },
   "devDependencies": {
     "coffee-script": "^1.7.1",
+    "hubot": "~2.13",
     "should": "~2.0.2",
     "mocha": "~1.13.0"
   }
