@@ -162,44 +162,7 @@ class Facebook extends Adapter
 
       bot.listen (err, event, stop) =>
         return @robot.logger.error err if err or not event?
-        return if event.type in ["typ", "read_receipt", "read", "presence"]
-
-        sender = event.senderID or event.author or event.userID
-        options = room: event.threadID
-        name = event.senderName
-        if event.participantNames? and event.participantIDs?
-          name = event.participantNames[event.participantIDs.indexOf(sender)]
-        options.name = name if name
-        user = @robot.brain.userForId sender, options
-
-        switch event.type
-          when "message"
-            if event.body?
-              @robot.logger.debug "#{user.name} -> #{user.room}: #{event.body}"
-
-              # If this is a PM, pretend it was addressed to us
-              event.body = "#{@robot.name} #{event.body}" if "#{sender}" == "#{event.threadID}"
-
-              @receive new TextMessage user, event.body, event.messageID
-
-            for attachment in event.attachments
-              switch attachment.type
-                when "sticker"
-                  @robot.logger.debug "#{user.name} -> #{user.room}: #{attachment.stickerID}"
-                  @receive new StickerMessage user,
-                    (attachment.url || attachment.spriteURI2x || attachment.spriteURI),
-                    event.messageID, attachment
-                # TODO "file", "photo", "animated_image", "share"
-            @bot.markAsRead user.room if process.env.HUBOT_FB_MAR
-          when "event"
-            switch event.logMessageType
-              when "log:thread-name"
-                @receive new TopicMessage user, event.logMessageData.name
-              when "log:unsubscribe"
-                @receive new LeaveMessage user
-              when "log:subscribe"
-                @receive new EnterMessage user
-            @robot.logger.debug "#{user.name} -> #{user.room}: #{event.logMessageType}"
+        @message event
 
 
 module.exports = Facebook
