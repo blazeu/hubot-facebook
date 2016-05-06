@@ -6,11 +6,11 @@
   "scripts": {
     "test": "mocha --compilers coffee:coffee-script/register --reporter spec"
   },
-  "author": "Clicia Scarlet <yuyuvn@icloud.com>",
+  "author": "blazeu <neversleepman@tfwno.gf>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git://github.com/yuyuvn/hubot-facebook.git"
+    "url": "git://github.com/blazeu/hubot-facebook.git"
   },
   "dependencies": {
     "facebook-chat-api": "~1.1.0",
@@ -20,12 +20,6 @@
     "node": ">=5.8.0",
     "npm": ">=3.7.0"
   },
-  "contributors": [
-    {
-      "name": "blazeu",
-      "email": "neversleepman@tfwno.gf"
-    }
-  ],
   "devDependencies": {
     "coffee-script": "^1.7.1",
     "should": "~2.0.2",
