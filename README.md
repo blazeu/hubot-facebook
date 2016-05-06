@@ -1,5 +1,3 @@
-# UNMAINTAINED
-
 # Hubot Facebook Chat Adapter
 
 ## Usage
