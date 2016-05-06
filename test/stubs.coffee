@@ -36,6 +36,8 @@ beforeEach ->
   @stubs._msg = []
   @stubs._readed = {}
   @stubs._title = {}
+  @stubs._typing =
+    typed: true
   @stubs.bot =
     getCurrentUserID: => @stubs.self.id
     getUserInfo: (ids, cb) =>
@@ -54,6 +56,9 @@ beforeEach ->
     setTitle: (title, thread, cb) =>
       @stubs._title[thread] = title
       cb() if cb?
+    sendTypingIndicator: (thread, cb) =>
+      @stubs._typing[thread] = true
+      cb()
 
   # Hubot.Robot instance
   @stubs.robot = do ->

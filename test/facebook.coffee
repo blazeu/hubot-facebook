@@ -37,6 +37,17 @@ describe 'Send Sticker Messages', ->
     @stubs._msg.length.should.equal 2
     @stubs._msg[0].msg.sticker.should.eql 'pusheen1'
 
+describe 'Send Typing Indicator', ->
+  it 'Should start typing indicator', ->
+    @facebook.typing {room: 'general'}
+    @stubs._typing.general.should.equal true
+
+  it 'Should stop typing indicator', ->
+    @facebook.endTyping = =>
+      @stubs._typing['typed'] = false
+    @facebook.typing {room: 'typed'}, false
+    @stubs._typing.typed.should.equal false
+
 # TODO test send file
 
 describe 'Other action', ->

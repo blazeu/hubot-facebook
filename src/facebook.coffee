@@ -18,6 +18,9 @@ class FbResponse extends Response
   read: () ->
     @robot.adapter.read @envelope
 
+  typing: (start) ->
+    @robot.adapter.typing @envelope, start
+
 class Facebook extends Adapter
   send: (envelope, strings...) ->
     for str in strings
@@ -39,6 +42,11 @@ class Facebook extends Adapter
 
   read: (envelope) ->
     @bot.markAsRead envelope.room
+
+  typing: (envelope, start = true) ->
+    if not start then return @endTyping?()
+    @endTyping = @bot.sendTypingIndicator envelope.room, (err) ->
+      @robot.logger.error err if err
 
   reply: (envelope, strings...) ->
     if envelope.room == envelope.user?.id || envelope.room == envelope.message?.user?.id
