@@ -160,25 +160,28 @@ class Facebook extends Adapter
     @robot.on "facebook.sendPrivate", @.privateMessage
 
     config =
-      name: if @robot.name is 'hubot' then null else @robot.name
-      email: process.env.HUBOT_FB_EMAIL || process.env.FB_LOGIN_EMAIL
-      password: process.env.HUBOT_FB_PASSWORD || process.env.FB_LOGIN_PASSWORD
-      appState: @getState()
+      name: if @robot.name is 'Hubot' then null else @robot.name
+      credentials:
+        email: process.env.HUBOT_FB_EMAIL || process.env.FB_LOGIN_EMAIL
+        password: process.env.HUBOT_FB_PASSWORD || process.env.FB_LOGIN_PASSWORD
+        appState: @getState()
+      options:
+        logLevel: 'silent'
+        listenEvents: true
+        forceLogin: true
 
     # Override the response to provide custom method
     @robot.Response = FbResponse
     @robot.respondSticker = (regex, callback) =>
       @robot.listeners.push new StickerListener @robot, regex, callback
 
-    chat email: config.email, password: config.password, appState: config.appState, (err, bot) =>
+    chat config.credentials, config.options, (err, bot) =>
       return @robot.logger.error err if err
+      @robot.logger.info 'Logged in'
 
       @bot = bot
 
       @storeState()
-
-      # Mute fb-chat-api's logging and allow listen for events
-      @bot.setOptions({logLevel: "silent", listenEvents: true})
 
       if config.name
         @emit "connected"
