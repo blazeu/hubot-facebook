@@ -1,4 +1,5 @@
 # Hubot Facebook Chat Adapter
+[![Build Status](https://travis-ci.org/blazeu/hubot-facebook.svg?branch=master)](https://travis-ci.org/blazeu/hubot-facebook)
 
 ## Usage
 - Create a new bot, follow the instruction [here](https://hubot.github.com/docs/)
