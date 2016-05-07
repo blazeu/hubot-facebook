@@ -1,6 +1,7 @@
 {Facebook} = require '../index'
 
 should = require 'should'
+fs = require 'fs'
 
 describe 'Adapter', ->
   it 'Should initialize with a robot', ->
@@ -47,6 +48,22 @@ describe 'Send Typing Indicator', ->
       @stubs._typing['typed'] = false
     @facebook.typing {room: 'typed'}, false
     @stubs._typing.typed.should.equal false
+
+describe 'App State', ->
+  afterEach (done) ->
+    fs.unlink @facebook.stateFile, -> done()
+
+  it 'Should store', (done) ->
+    @facebook.storeState (err) =>
+      fs.readFile @facebook.stateFile, (err, data) =>
+        data = JSON.parse data
+        data.should.eql @stubs.state
+        done()
+
+  it 'Should get from cache file', ->
+    state = JSON.stringify @stubs.state
+    fs.writeFileSync @facebook.stateFile, state
+    @facebook.getState().should.eql @stubs.state
 
 # TODO test send file
 

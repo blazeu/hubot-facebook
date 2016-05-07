@@ -32,6 +32,7 @@ beforeEach ->
     type: "sticker"
     url: "http://abc.com"
     stickerID: "123343545"
+  @stubs.state = [{'data': 'value'}]
 
   @stubs._msg = []
   @stubs._readed = {}
@@ -59,6 +60,7 @@ beforeEach ->
     sendTypingIndicator: (thread, cb) =>
       @stubs._typing[thread] = true
       cb()
+    getAppState: => @stubs.state
 
   # Hubot.Robot instance
   @stubs.robot = do ->

@@ -2,6 +2,7 @@
 {StickerMessage} = require './message'
 {StickerListener} = require './listener'
 
+fs = require 'fs'
 chat = require 'facebook-chat-api'
 
 # Custom Response class that adds a sendPrivate method (based on hubot-irc) and sendSticker method
@@ -22,6 +23,8 @@ class FbResponse extends Response
     @robot.adapter.typing @envelope, start
 
 class Facebook extends Adapter
+  stateFile: "#{__dirname}/../state.json"
+
   send: (envelope, strings...) ->
     for str in strings
       continue unless str
@@ -136,6 +139,18 @@ class Facebook extends Adapter
       @robot.name = res[user_id].firstName
       cb()
 
+  getState: ->
+    try
+      return require(@stateFile)
+    catch error
+      return null
+
+  storeState: (cb) ->
+    state = JSON.stringify @bot.getAppState()
+    fs.writeFile @stateFile, state, (err) =>
+      return @robot.logger.error err if err?
+      cb() if cb?
+
   run: ->
     # another way to use special send is use @robot.emit
     # so hubot don't need to check if respond has special method or not
@@ -148,16 +163,19 @@ class Facebook extends Adapter
       name: if @robot.name is 'hubot' then null else @robot.name
       email: process.env.HUBOT_FB_EMAIL || process.env.FB_LOGIN_EMAIL
       password: process.env.HUBOT_FB_PASSWORD || process.env.FB_LOGIN_PASSWORD
+      appState: @getState()
 
     # Override the response to provide custom method
     @robot.Response = FbResponse
     @robot.respondSticker = (regex, callback) =>
       @robot.listeners.push new StickerListener @robot, regex, callback
 
-    chat email: config.email, password: config.password, (err, bot) =>
+    chat email: config.email, password: config.password, appState: config.appState, (err, bot) =>
       return @robot.logger.error err if err
 
       @bot = bot
+
+      @storeState()
 
       # Mute fb-chat-api's logging and allow listen for events
       @bot.setOptions({logLevel: "silent", listenEvents: true})
