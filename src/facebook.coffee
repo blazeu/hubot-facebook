@@ -169,6 +169,7 @@ class Facebook extends Adapter
         logLevel: 'silent'
         listenEvents: true
         forceLogin: true
+        selfListen: if process.env.FB_SELF_LISTEN then true else false
 
     # Override the response to provide custom method
     @robot.Response = FbResponse
