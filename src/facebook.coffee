@@ -24,6 +24,7 @@ class FbResponse extends Response
 
 class Facebook extends Adapter
   stateFile: "#{__dirname}/../state.json"
+  users: {}
 
   send: (envelope, strings...) ->
     for str in strings
@@ -95,12 +96,10 @@ class Facebook extends Adapter
     # Skip useless data
     return if event.type in ["typ", "read_receipt", "read", "presence"]
 
-    sender = event.senderID or event.author or event.userID
-    options = room: event.threadID
-    name = event.senderName
-    if event.participantNames? and event.participantIDs?
-      name = event.participantNames[event.participantIDs.indexOf(sender)]
-    options.name = name if name
+    sender = event.senderID
+    options =
+      name: event.senderName
+      room: event.threadID
     user = @robot.brain.userForId sender, options
 
     switch event.type
@@ -151,6 +150,13 @@ class Facebook extends Adapter
       return @robot.logger.error err if err?
       cb() if cb?
 
+  getUser: (id, cb) ->
+    return cb @users[id] if @users[id]
+    @bot.getUserInfo id, (err, res) =>
+      return @robot.logger.error err if err?
+      @users[id] = res[id]
+      cb @users[id]
+
   run: ->
     # another way to use special send is use @robot.emit
     # so hubot don't need to check if respond has special method or not
@@ -192,7 +198,11 @@ class Facebook extends Adapter
 
       bot.listen (err, event, stop) =>
         return @robot.logger.error err if err or not event?
-        @message event
+        event.senderID = event.senderID or event.author or event.userID
+        # Get user name
+        @getUser event.senderID, (user) =>
+          event.senderName = user.name
+          @message event
 
 
 module.exports = Facebook

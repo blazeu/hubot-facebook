@@ -15,6 +15,7 @@ beforeEach ->
     id: 'U123.foo'
   @stubs.self =
     name: 'self'
+    firstName: 'self'
     id: 'U456.bar'
   @stubs.message =
     type: 'message'
@@ -43,7 +44,7 @@ beforeEach ->
     getCurrentUserID: => @stubs.self.id
     getUserInfo: (ids, cb) =>
       object = {}
-      object[@stubs.self.id] = firstName: @stubs.self.name
+      object[@stubs.self.id] = @stubs.self
       cb null, object
     listen: (cb) => cb null, @stubs.message
     markAsRead: (threadID, cb) =>

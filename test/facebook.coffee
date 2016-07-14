@@ -65,6 +65,12 @@ describe 'App State', ->
     fs.writeFileSync @facebook.stateFile, state
     @facebook.getState().should.eql @stubs.state
 
+describe 'Get User Info', ->
+  it 'Should get', (done) ->
+    @facebook.getUser @stubs.self.id, (user) =>
+      user.should.eql @stubs.self
+      done()
+
 # TODO test send file
 
 describe 'Other action', ->
