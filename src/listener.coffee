@@ -1,5 +1,5 @@
 {Listener} = require 'hubot'
-{StickerMessage} = require './message'
+{CustomFacebookMessage, StickerMessage} = require './message'
 
 # Custome listener for custom messager
 # Ex:
@@ -9,7 +9,19 @@
 #    msg.send "bar"
 #
 
-class StickerListener extends Listener
+class CustomFacebookListener extends Listener
+  constructor: (@robot, @regex, @callback) ->
+    @matcher = (message) =>
+      if message instanceof CustomFacebookMessage
+        message.fields.type.match @regex
+
+  call: (message) ->
+    if message instanceof CustomFacebookMessage
+      super message
+    else
+      false
+
+class StickerListener extends CustomFacebookListener
   constructor: (@robot, @regex, @callback) ->
     @matcher = (message) =>
       if message instanceof StickerMessage
@@ -22,5 +34,6 @@ class StickerListener extends Listener
       false
 
 module.exports = {
+  CustomFacebookListener
   StickerListener
 }

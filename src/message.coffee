@@ -6,16 +6,23 @@
 if not Message
   Message = TextMessage.__super__.constructor
 
-class StickerMessage extends Message
-  # Represents Sticker messages.
+class CustomFacebookMessage extends Message
+  # Represents facebook attachment messages.
   #
   #
   # user       - The User object
-  # text       - The sticker url
   # id         - The id of message
-  # stickerID  - The id of sticker
-  constructor: (@user, @text="", @id="", @fields={}) ->
+  # fields     - The facebook attachment of message
+  constructor: (@user, @id, @fields={}) ->
     super @user
+
+  toString: () ->
+    "CustomMessage[#{@id}]"
+
+class StickerMessage extends CustomFacebookMessage
+  constructor: (@user, @id, @fields={}) ->
+    super @user, @id, @fields
+    @text = @fields.url || @fields.spriteURI2x || @fields.spriteURI
 
   match: (regex) ->
     @fields.stickerID.match regex
@@ -24,5 +31,6 @@ class StickerMessage extends Message
     "Sticker(#{@fields.stickerID})"
 
 module.exports = {
+  CustomFacebookMessage
   StickerMessage
 }
