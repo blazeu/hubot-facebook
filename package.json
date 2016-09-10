@@ -13,7 +13,7 @@
     "url": "git://github.com/blazeu/hubot-facebook.git"
   },
   "dependencies": {
-    "facebook-chat-api": "~1.1.0"
+    "facebook-chat-api": "~1.2.0"
   },
   "engines": {
     "node": ">=5.8.0",
