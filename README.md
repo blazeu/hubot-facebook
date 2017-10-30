@@ -1,3 +1,5 @@
+# UNMAINTAINED
+
 # Hubot Facebook Chat Adapter
 [![Build Status](https://travis-ci.org/blazeu/hubot-facebook.svg?branch=master)](https://travis-ci.org/blazeu/hubot-facebook)
 
