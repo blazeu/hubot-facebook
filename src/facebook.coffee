@@ -1,5 +1,5 @@
 {Robot, Adapter, TextMessage, EnterMessage, LeaveMessage, TopicMessage, Response, Brain} = require 'hubot'
-{StickerMessage} = require './message'
+{CustomFacebookMessage, StickerMessage} = require './message'
 {StickerListener} = require './listener'
 
 fs = require 'fs'
@@ -116,10 +116,10 @@ class Facebook extends Adapter
           switch attachment.type
             when "sticker"
               @robot.logger.debug "#{user.name} -> #{user.room}: #{attachment.stickerID}"
-              @receive new StickerMessage user,
-                (attachment.url || attachment.spriteURI2x || attachment.spriteURI),
-                event.messageID, attachment
-            # TODO "file", "photo", "animated_image", "share"
+              @receive new StickerMessage user, event.messageID, attachment
+            else
+              @robot.logger.debug "#{user.name} -> #{user.room}: #{attachment.type}"
+              @receive new CustomFacebookMessage user, event.messageID, attachment
       when "event"
         switch event.logMessageType
           when "log:thread-name"
